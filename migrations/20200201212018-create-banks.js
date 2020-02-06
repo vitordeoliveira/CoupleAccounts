@@ -11,7 +11,9 @@ module.exports = {
       wallet_id: {
         type: Sequelize.UUID,
         references: { model: "Wallets", key: "id" },
-        allowNull: false
+        allowNull: false,
+        onUpdate: "cascade",
+        onDelete: "cascade"
       },
       name: {
         type: Sequelize.STRING,
@@ -19,21 +21,6 @@ module.exports = {
       },
       balance: {
         type: Sequelize.DECIMAL(10, 2)
-      },
-      taxesDecimal: {
-        type: Sequelize.DECIMAL(10, 2)
-      },
-      taxesPercentage: {
-        type: Sequelize.INTEGER
-      },
-      interest: {
-        type: Sequelize.INTEGER
-      },
-      yieldDecimal: {
-        type: Sequelize.DECIMAL(10, 2)
-      },
-      yieldPercentage: {
-        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,

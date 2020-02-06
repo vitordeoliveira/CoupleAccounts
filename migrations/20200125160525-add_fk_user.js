@@ -5,7 +5,9 @@ module.exports = {
     return queryInterface.addColumn("Users", "wallet_id", {
       type: Sequelize.UUID,
       references: { model: "Wallets", key: "id" },
-      after: "id"
+      after: "id",
+      onUpdate: "cascade",
+      onDelete: "cascade"
     });
   },
 

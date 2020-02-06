@@ -3,47 +3,31 @@ const { Banks } = require("../../models");
 module.exports = {
   async index(req, res) {
     try {
-      const { wallet_id } = req.params;
+    } catch (error) {}
+  },
+
+  async update(req, res) {
+    try {
+      const { wallet_id } = req.user;
       const banks = await Banks.findAll({
         where: {
           wallet_id
         }
       });
-      return res.json(banks);
-    } catch (error) {}
-  },
 
-  async store(req, res) {
-    try {
-      const {
-        name,
-        balance,
-        taxesDecimal,
-        taxesPercentage,
-        interest,
-        yieldDecimal,
-        yieldPercentage
-      } = req.body;
-      const { wallet_id } = req.params;
-      if (!name) {
-        return res.status(400).json({ msg: "Nome é um campo obrigatório" });
-      }
+      banks.forEach(bank => {
+        const increment =
+          bank.yieldPercentage * bank.balance + Number(bank.yieldDecimal);
+        const decrement =
+          Number(bank.taxesDecimal) + bank.taxesPercentage * bank.balance;
 
-      const bank = await Banks.create({
-        name,
-        wallet_id,
-        balance,
-        taxesDecimal,
-        taxesPercentage,
-        interest,
-        yieldDecimal,
-        yieldPercentage
+        const newBalance = Number(bank.balance) + increment - decrement;
+        bank.update({ balance: newBalance }, { fields: ["balance"] });
       });
 
-      return res.json(bank);
+      return res.json(banks);
     } catch (error) {
       console.log(error);
-      return res.status(400).json({ err: "Error!" });
     }
   }
 };

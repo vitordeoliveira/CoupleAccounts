@@ -3,7 +3,7 @@ const { Op } = require("sequelize");
 
 module.exports = {
   async index(req, res) {
-    const { id } = req.params;
+    const { id } = req.user;
 
     const InAcc = await CoupleAccount.findAll({
       include: [
@@ -44,11 +44,14 @@ module.exports = {
 
   async store(req, res) {
     try {
-      const { user_id, name } = req.body;
+      const { id } = req.user;
+      const { name } = req.body;
       const account = await CoupleAccount.create({ name });
 
-      if (user_id) {
-        account.setUsers(user_id);
+      const checkUserExist = await User.findByPk(id);
+
+      if (checkUserExist) {
+        account.setUsers(id);
       }
 
       return res.json(account);
@@ -60,10 +63,10 @@ module.exports = {
 
   async create(req, res) {
     try {
-      const { id } = req.params;
-      //   const { user } = req.user;
+      const { id } = req.user;
       const { user_id } = req.body;
-      const account = await CoupleAccount.findByPk(id, {
+      const { account_id } = req.params;
+      const account = await CoupleAccount.findByPk(account_id, {
         include: [
           {
             model: User,
@@ -73,14 +76,11 @@ module.exports = {
         ]
       });
 
-      //   if (account.Users.some(user => user.id == user)) {
-      //     const newacc = await account.addUser(user_id);
-      //     return res.json(newacc);
-      //   }
-      //     return res.status(403).json({ msg: "Essa operação é invalida" });
-
-      const newacc = await account.addUser(user_id);
-      return res.json(newacc);
+      if (account.Users.some(user => user.id == id)) {
+        const newacc = await account.addUser(user_id);
+        return res.json(newacc);
+      }
+      return res.status(403).json({ msg: "Essa operacao invalida" });
     } catch (error) {}
   }
 };

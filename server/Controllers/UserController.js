@@ -1,4 +1,5 @@
 const { User, Wallet } = require("../../models");
+const jwt = require("jsonwebtoken");
 
 module.exports = {
   async index(req, res) {
@@ -16,15 +17,29 @@ module.exports = {
         return res.status(400).json({ msg: "Preencha todos os campo" });
       }
 
-      const user = await User.create({ name, email });
-      const wallet = await user.createWallet(user);
+      const findUser = await User.findOne({ where: { email } });
 
-      if (user) {
-        user.wallet_id = wallet.id;
+      if (!findUser) {
+        const user = await User.create({ name, email });
+        const wallet = await user.createWallet(user);
+
+        if (user) {
+          user.wallet_id = wallet.id;
+        }
+        const payload = await user.save();
+
+        jwt.sign({ payload }, process.env.SECRET, (err, token) => {
+          if (err) throw err;
+          token = "Bearer " + token;
+          return res.json({ token });
+        });
       }
-      const newUser = await user.save();
 
-      return res.json(newUser);
+      jwt.sign({ payload: findUser }, process.env.SECRET, (err, token) => {
+        if (err) throw err;
+        token = "Bearer " + token;
+        return res.json({ token });
+      });
     } catch (error) {
       console.log(error);
       return res.status(400).json({ err: "Error!" });
